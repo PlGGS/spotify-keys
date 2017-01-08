@@ -11,4 +11,5 @@ This simple application is made to be placed in one's startup folder, and used f
 Key Commands:
 ------------------------
 Control + Space = Next song
+
 Control + Shift + Space = Last song
