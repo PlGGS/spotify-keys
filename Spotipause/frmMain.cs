@@ -61,6 +61,11 @@ namespace Spotipause
             m_GlobalHook.KeyUp += GlobalHookKeyUp;
         }
 
+        /// <summary>
+        /// Detects KeyUp events while outside of application
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void GlobalHookKeyUp(object sender, KeyEventArgs e)
         {
             if (!ModifierKeys.HasFlag(Keys.Shift))
@@ -95,6 +100,11 @@ namespace Spotipause
             //Console.WriteLine("shift: " + pressingShift + " | control: " + pressingControl);
         }
 
+        /// <summary>
+        /// Detects KeyDown events while outside of application
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void GlobalHookKeyDown(object sender, KeyEventArgs e)
         {
             if (ModifierKeys.HasFlag(Keys.Shift))
@@ -129,6 +139,9 @@ namespace Spotipause
             m_GlobalHook.Dispose();
         }
 
+        /// <summary>
+        /// Application Initialization
+        /// </summary>
         public frmMain()
         {
             InitializeComponent();
