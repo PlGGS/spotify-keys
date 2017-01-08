@@ -197,5 +197,15 @@ namespace Spotipause
                 Application.Restart();
             }
         }
+
+        /// <summary>
+        /// Run on the initialization of the form
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void frmMain_Load(object sender, EventArgs e)
+        {
+            this.Visible = false;
+        }
     }
 }
