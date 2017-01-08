@@ -56,7 +56,6 @@ namespace Spotipause
         {
             // Note: for the application hook, use the Hook.AppEvents() instead
             m_GlobalHook = Hook.GlobalEvents();
-            m_GlobalHook.KeyPress += GlobalHookKeyPress;
             m_GlobalHook.KeyDown += GlobalHookKeyDown;
             m_GlobalHook.KeyUp += GlobalHookKeyUp;
         }
@@ -117,23 +116,14 @@ namespace Spotipause
                 pressingControl = true;
             }
         }
-
-        /// <summary>
-        /// Detects KeyPress events while outside of application
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void GlobalHookKeyPress(object sender, KeyPressEventArgs e)
-        {
-            
-        }
-
+        
         /// <summary>
         /// Unsubscribes from MouseKeyHook events
         /// </summary>
         public void Unsubscribe()
         {
-            m_GlobalHook.KeyPress -= GlobalHookKeyPress;
+            m_GlobalHook.KeyDown -= GlobalHookKeyDown;
+            m_GlobalHook.KeyUp -= GlobalHookKeyUp;
 
             //It is recommeneded to dispose it
             m_GlobalHook.Dispose();
