@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Gma.System.MouseKeyHook;
@@ -34,6 +33,7 @@ namespace Spotipause
         private const int MEDIA_NEXT_TRACK = 0xB0000;
         bool pressingControl = false;
         bool pressingShift = false;
+        int processEntry = 0;
 
         /// <summary>
         /// Hides application from alt+tab menu
@@ -137,13 +137,31 @@ namespace Spotipause
             InitializeComponent();
             Subscribe();
             WriteProcesses("Spotify");
+            GetMainSpotifyProcess();
+            Console.WriteLine("used: " + processEntry);
+        }
 
-            try
+        private void GetMainSpotifyProcess()
+        {
+            if (Process.GetProcessesByName("Spotify") != null)
             {
-                spotifyProcess = Process.GetProcessById(10204);
-                spotifyHWnd = spotifyProcess.MainWindowHandle;
+                spotifyProcess = Process.GetProcessesByName("Spotify")[processEntry];
+
+                for (int i = processEntry; i < Process.GetProcessesByName("Spotify").Length; i++)
+                {
+                    try
+                    {
+                        spotifyHWnd = spotifyProcess.MainWindowHandle;
+                    }
+                    catch (Exception)
+                    {
+                        Console.WriteLine("caught: " + processEntry);
+                        processEntry++;
+                        GetMainSpotifyProcess();
+                    }
+                }
             }
-            catch (Exception)
+            else
             {
                 MessageBox.Show("Please start Spotify before starting Spotipause. Thank you.", "Spotipause");
                 Application.Exit();
