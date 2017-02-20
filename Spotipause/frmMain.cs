@@ -42,7 +42,6 @@ namespace Spotipause
         {
             get
             {
-                // Turn on WS_EX_TOOLWINDOW style bit
                 CreateParams cp = base.CreateParams;
                 cp.ExStyle |= 0x80;
                 return cp;
@@ -124,8 +123,6 @@ namespace Spotipause
         {
             m_GlobalHook.KeyDown -= GlobalHookKeyDown;
             m_GlobalHook.KeyUp -= GlobalHookKeyUp;
-
-            //It is recommeneded to dispose it
             m_GlobalHook.Dispose();
         }
 
@@ -135,12 +132,15 @@ namespace Spotipause
         public frmMain()
         {
             InitializeComponent();
-            Subscribe();
             WriteProcesses("Spotify");
             GetMainSpotifyProcess();
             Console.WriteLine("used: " + processEntry);
+            Subscribe();
         }
 
+        /// <summary>
+        /// Finds the Spotfiy process that has a usable hWnd to hook into
+        /// </summary>
         private void GetMainSpotifyProcess()
         {
             if (Process.GetProcessesByName("Spotify") != null)
@@ -188,13 +188,10 @@ namespace Spotipause
         /// </summary>
         public void BringWindowToFront()
         {
-            //WriteProcesses();
-
             if (spotifyProcess != null)
             {
                 if (spotifyHWnd == IntPtr.Zero)
                 {
-                    //the window is hidden so try to restore it before setting focus.
                     ShowWindow(spotifyProcess.Handle, ShowWindowEnum.Restore);
                 }
 
