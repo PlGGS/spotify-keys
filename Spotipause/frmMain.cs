@@ -67,16 +67,6 @@ namespace Spotipause
         /// <param name="e"></param>
         private void GlobalHookKeyUp(object sender, KeyEventArgs e)
         {
-            if (!ModifierKeys.HasFlag(Keys.Shift))
-            {
-                pressingShift = false;
-            }
-
-            if (!ModifierKeys.HasFlag(Keys.Control))
-            {
-                pressingControl = false;
-            }
-
             if (pressingControl)
             {
                 if (pressingShift)
@@ -96,7 +86,17 @@ namespace Spotipause
                 }
             }
 
-            //Console.WriteLine("shift: " + pressingShift + " | control: " + pressingControl);
+            if (!ModifierKeys.HasFlag(Keys.Shift))
+            {
+                pressingShift = false;
+            }
+
+            if (!ModifierKeys.HasFlag(Keys.Control))
+            {
+                pressingControl = false;
+            }
+            
+            Console.WriteLine("shift: " + pressingShift + " | control: " + pressingControl);
         }
 
         /// <summary>
@@ -106,14 +106,14 @@ namespace Spotipause
         /// <param name="e"></param>
         private void GlobalHookKeyDown(object sender, KeyEventArgs e)
         {
-            if (ModifierKeys.HasFlag(Keys.Shift))
-            {
-                pressingShift = true;
-            }
-
-            if (ModifierKeys.HasFlag(Keys.Control))
+            if (e.KeyCode == Keys.LControlKey)
             {
                 pressingControl = true;
+            }
+
+            if (e.KeyCode == Keys.LShiftKey)
+            {
+                pressingShift = true;
             }
         }
         
@@ -136,31 +136,32 @@ namespace Spotipause
         {
             InitializeComponent();
             Subscribe();
+            WriteProcesses("Spotify");
 
-            spotifyProcess = Process.GetProcessesByName("Spotify").FirstOrDefault();
-            
-            if (spotifyProcess != null)
+            try
             {
-                //get the hWnd of the process
+                spotifyProcess = Process.GetProcessById(10204);
                 spotifyHWnd = spotifyProcess.MainWindowHandle;
             }
-            else
+            catch (Exception)
             {
-                //Only works with defualt installation folder for now...
-                Process.Start(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Spotify\\Spotify.exe");
-                Application.Restart();
+                MessageBox.Show("Please start Spotify before starting Spotipause. Thank you.", "Spotipause");
+                Application.Exit();
             }
         }
 
         /// <summary>
-        /// Writes all running process names to the console for easy viewing
+        /// Writes running process names that contain a specific set of characters to the console for easy viewing
         /// </summary>
-        private void WriteProcesses()
+        private void WriteProcesses(string procNameContains)
         {
             Process[] processes = Process.GetProcesses();
             foreach (Process proc in processes)
             {
-                Console.WriteLine(proc.ProcessName);
+                if (proc.ProcessName.Contains("procNameContains"))
+                {
+                    Console.WriteLine(proc.ProcessName + " | " + proc.Id);
+                }
             }
         }
 
