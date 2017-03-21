@@ -85,12 +85,12 @@ namespace Spotipause
                 }
             }
 
-            if (!ModifierKeys.HasFlag(Keys.Shift))
+            if (e.KeyCode == Keys.LShiftKey)
             {
                 pressingShift = false;
             }
 
-            if (!ModifierKeys.HasFlag(Keys.Control))
+            if (e.KeyCode == Keys.LControlKey)
             {
                 pressingControl = false;
             }
@@ -114,8 +114,10 @@ namespace Spotipause
             {
                 pressingShift = true;
             }
+
+            Console.WriteLine("shift: " + pressingShift + " | control: " + pressingControl);
         }
-        
+
         /// <summary>
         /// Unsubscribes from MouseKeyHook events
         /// </summary>
