@@ -3,6 +3,9 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Gma.System.MouseKeyHook;
+using System.IO;
+using System.Reflection;
+using System.Threading;
 
 namespace Spotipause
 {
@@ -150,7 +153,6 @@ namespace Spotipause
             InitializeComponent();
             WriteProcesses("Spotify");
             GetSpotifyProcesses();
-            Subscribe();
         }
 
         /// <summary>
@@ -158,7 +160,7 @@ namespace Spotipause
         /// </summary>
         private void GetSpotifyProcesses()
         {
-            if (Process.GetProcessesByName("Spotify") != null)
+            if (Process.GetProcessesByName("Spotify").Length != 0)
             {
                 spotifyProcesses = new Process[Process.GetProcessesByName("Spotify").Length];
                 spotifyHWnds = new IntPtr[spotifyProcesses.Length];
@@ -177,23 +179,38 @@ namespace Spotipause
 #endif
                     }
                 }
+
+                Subscribe();
             }
             else
             {
-                MessageBox.Show("Please start Spotify before starting Spotipause. Thank you.", "Spotipause");
-                Application.Exit();
+#if DEBUG
+                Console.WriteLine("Starting Spotify");
+#endif
+
+                try
+                {
+                    Process.Start(Path.GetDirectoryName(Assembly.GetExecutingAssembly().GetName().CodeBase).Substring(6) + "\\Spotify.lnk");
+                    Thread.Sleep(5000);
+                    Application.Restart();
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show("Spotipause", "Failed to start the Spotify process. Please either fix the shortcut in your Spotipause directory, or start Spotify manually.");
+                    throw;
+                }
             }
         }
 
         /// <summary>
         /// Writes running process names that contain a specific set of characters to the console for easy viewing
         /// </summary>
-        private void WriteProcesses(string procNameContains)
+        private void WriteProcesses(string procName)
         {
             Process[] processes = Process.GetProcesses();
             foreach (Process proc in processes)
             {
-                if (proc.ProcessName.Contains("procNameContains"))
+                if (proc.ProcessName.Contains(procName))
                 {
 #if DEBUG
                     Console.WriteLine(proc.ProcessName + " | " + proc.Id);
