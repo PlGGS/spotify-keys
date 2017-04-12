@@ -26,14 +26,13 @@ namespace Spotipause
             Restore = 9, ShowDefault = 10, ForceMinimized = 11
         };
         private IKeyboardMouseEvents m_GlobalHook;
-        Process spotifyProcess;
-        IntPtr spotifyHWnd;
+        Process[] spotifyProcesses;
+        IntPtr[] spotifyHWnds;
         private const int WM_APPCOMMAND = 0x319;
         private const int MEDIA_PREVIOUS_TRACK = 0xC0000;
         private const int MEDIA_NEXT_TRACK = 0xB0000;
         bool pressingControl = false;
         bool pressingShift = false;
-        int processEntry = 0;
 
         /// <summary>
         /// Hides application from alt+tab menu
@@ -73,15 +72,26 @@ namespace Spotipause
                     if (e.KeyCode == Keys.Space)
                     {
                         //Last song
+#if DEBUG
                         Console.WriteLine("Skipping back");
-                        SendMessage(spotifyHWnd, WM_APPCOMMAND, (IntPtr)0, (IntPtr)MEDIA_PREVIOUS_TRACK);
+#endif
+
+                        for (int i = 0; i < Process.GetProcessesByName("Spotify").Length; i++)
+                        {
+                            SendMessage(spotifyHWnds[i], WM_APPCOMMAND, (IntPtr)0, (IntPtr)MEDIA_PREVIOUS_TRACK);
+                        }
                     }
                 }
                 else if (e.KeyCode == Keys.Space)
                 {
                     //Next song
+#if DEBUG
                     Console.WriteLine("Skipping forward");
-                    SendMessage(spotifyHWnd, WM_APPCOMMAND, (IntPtr)0, (IntPtr)MEDIA_NEXT_TRACK);
+#endif
+                    for (int i = 0; i < Process.GetProcessesByName("Spotify").Length; i++)
+                    {
+                        SendMessage(spotifyHWnds[i], WM_APPCOMMAND, (IntPtr)0, (IntPtr)MEDIA_NEXT_TRACK);
+                    }
                 }
             }
 
@@ -94,8 +104,10 @@ namespace Spotipause
             {
                 pressingControl = false;
             }
-            
+
+#if DEBUG
             Console.WriteLine("shift: " + pressingShift + " | control: " + pressingControl);
+#endif
         }
 
         /// <summary>
@@ -115,7 +127,9 @@ namespace Spotipause
                 pressingShift = true;
             }
 
+#if DEBUG
             Console.WriteLine("shift: " + pressingShift + " | control: " + pressingControl);
+#endif
         }
 
         /// <summary>
@@ -135,31 +149,32 @@ namespace Spotipause
         {
             InitializeComponent();
             WriteProcesses("Spotify");
-            GetMainSpotifyProcess();
-            Console.WriteLine("used: " + processEntry);
+            GetSpotifyProcesses();
             Subscribe();
         }
 
         /// <summary>
-        /// Finds the Spotfiy process that has a usable hWnd to hook into
+        /// Finds and stores all Spotfiy processes that have usable hWnds to hook into
         /// </summary>
-        private void GetMainSpotifyProcess()
+        private void GetSpotifyProcesses()
         {
             if (Process.GetProcessesByName("Spotify") != null)
             {
-                spotifyProcess = Process.GetProcessesByName("Spotify")[processEntry];
+                spotifyProcesses = new Process[Process.GetProcessesByName("Spotify").Length];
+                spotifyHWnds = new IntPtr[spotifyProcesses.Length];
 
-                for (int i = processEntry; i < Process.GetProcessesByName("Spotify").Length; i++)
+                for (int i = 0; i < Process.GetProcessesByName("Spotify").Length; i++)
                 {
                     try
                     {
-                        spotifyHWnd = spotifyProcess.MainWindowHandle;
+                        spotifyProcesses[i] = Process.GetProcessesByName("Spotify")[i];
+                        spotifyHWnds[i] = spotifyProcesses[i].MainWindowHandle;
                     }
                     catch (Exception)
                     {
-                        Console.WriteLine("caught: " + processEntry);
-                        processEntry++;
-                        GetMainSpotifyProcess();
+#if DEBUG
+                        Console.WriteLine("caught: " + Process.GetProcessesByName("Spotify")[i]);
+#endif
                     }
                 }
             }
@@ -180,32 +195,13 @@ namespace Spotipause
             {
                 if (proc.ProcessName.Contains("procNameContains"))
                 {
+#if DEBUG
                     Console.WriteLine(proc.ProcessName + " | " + proc.Id);
+#endif
                 }
             }
         }
-
-        /// <summary>
-        /// Brings the Spotify application window into view
-        /// </summary>
-        public void BringWindowToFront()
-        {
-            if (spotifyProcess != null)
-            {
-                if (spotifyHWnd == IntPtr.Zero)
-                {
-                    ShowWindow(spotifyProcess.Handle, ShowWindowEnum.Restore);
-                }
-
-                SetForegroundWindow((IntPtr)spotifyProcess.MainWindowHandle);
-            }
-            else
-            {
-                Process.Start(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Spotify\\Spotify.exe");
-                Application.Restart();
-            }
-        }
-
+        
         /// <summary>
         /// Run on the initialization of the form
         /// </summary>
