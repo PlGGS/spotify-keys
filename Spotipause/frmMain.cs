@@ -196,7 +196,7 @@ namespace Spotipause
                 }
                 catch (Exception)
                 {
-                    MessageBox.Show("Spotipause", "Failed to start the Spotify process. Please either fix the shortcut in your Spotipause directory, or start Spotify manually.");
+                    MessageBox.Show("Failed to start the Spotify process. Please either fix the shortcut in your Spotipause directory, or start Spotify manually.", "Spotipause");
                     throw;
                 }
             }
