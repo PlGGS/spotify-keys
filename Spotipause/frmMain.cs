@@ -31,9 +31,10 @@ namespace Spotipause
         private IKeyboardMouseEvents m_GlobalHook;
         Process[] spotifyProcesses;
         IntPtr[] spotifyHWnds;
-        private const int WM_APPCOMMAND = 0x319;
-        private const int MEDIA_PREVIOUS_TRACK = 0xC0000;
-        private const int MEDIA_NEXT_TRACK = 0xB0000;
+        const int WM_APPCOMMAND = 0x319;
+        const int MEDIA_PREVIOUS_TRACK = 0xC0000;
+        const int MEDIA_NEXT_TRACK = 0xB0000;
+        const int APPCOMMAND_PLAY_PAUSE = 0xE0000;
         bool pressingControl = false;
         bool pressingShift = false;
 
