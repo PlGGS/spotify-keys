@@ -20,6 +20,10 @@ namespace Spotipause
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         static extern bool ShowWindow(IntPtr hWnd, ShowWindowEnum flags);
+        [DllImport("user32.dll")]
+        private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
+        [DllImport("user32.dll")]
+        private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
         private enum ShowWindowEnum
         {
             Hide = 0,
@@ -31,12 +35,14 @@ namespace Spotipause
         private IKeyboardMouseEvents m_GlobalHook;
         Process[] spotifyProcesses;
         IntPtr[] spotifyHWnds;
+        const int WM_HOTKEY = 0x0312;
         const int WM_APPCOMMAND = 0x319;
         const int MEDIA_PREVIOUS_TRACK = 0xC0000;
         const int MEDIA_NEXT_TRACK = 0xB0000;
         const int APPCOMMAND_PLAY_PAUSE = 0xE0000;
         bool pressingControl = false;
         bool pressingShift = false;
+        bool pressingAlt = false;
 
         /// <summary>
         /// Hides application from alt+tab menu
@@ -69,9 +75,26 @@ namespace Spotipause
         /// <param name="e"></param>
         private void GlobalHookKeyUp(object sender, KeyEventArgs e)
         {
+#if DEBUG
+            Console.ForegroundColor = ConsoleColor.Blue;
+#endif
             if (pressingControl)
             {
-                if (pressingShift)
+                if (pressingAlt)
+                {
+                    if (e.KeyCode == Keys.Space)
+                    {
+                        //Play and pause
+#if DEBUG
+                        Console.WriteLine("Playing/Pausing");
+#endif
+                        for (int i = 0; i < Process.GetProcessesByName("Spotify").Length; i++)
+                        {
+                            SendMessage(spotifyHWnds[i], WM_APPCOMMAND, (IntPtr)0, (IntPtr)APPCOMMAND_PLAY_PAUSE);
+                        }
+                    }
+                }
+                else if (pressingShift)
                 {
                     if (e.KeyCode == Keys.Space)
                     {
@@ -79,7 +102,6 @@ namespace Spotipause
 #if DEBUG
                         Console.WriteLine("Skipping back");
 #endif
-
                         for (int i = 0; i < Process.GetProcessesByName("Spotify").Length; i++)
                         {
                             SendMessage(spotifyHWnds[i], WM_APPCOMMAND, (IntPtr)0, (IntPtr)MEDIA_PREVIOUS_TRACK);
@@ -99,18 +121,24 @@ namespace Spotipause
                 }
             }
 
-            if (e.KeyCode == Keys.LShiftKey)
-            {
-                pressingShift = false;
-            }
-
             if (e.KeyCode == Keys.LControlKey)
             {
                 pressingControl = false;
             }
 
+            if (e.KeyCode == Keys.LShiftKey)
+            {
+                pressingShift = false;
+            }
+
+            if (e.KeyCode == Keys.LMenu)
+            {
+                pressingAlt= false;
+            }
+
 #if DEBUG
-            Console.WriteLine("shift: " + pressingShift + " | control: " + pressingControl);
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"UP ({e.KeyCode.ToString()}) :: shift: " + pressingShift + " | control: " + pressingControl + " | alt: " + pressingAlt);
 #endif
         }
 
@@ -131,8 +159,14 @@ namespace Spotipause
                 pressingShift = true;
             }
 
+            if (e.KeyCode == Keys.LMenu)
+            {
+                pressingAlt = true;
+            }
+
 #if DEBUG
-            Console.WriteLine("shift: " + pressingShift + " | control: " + pressingControl);
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"DOWN ({e.KeyCode.ToString()}) :: shift: " + pressingShift + " | control: " + pressingControl + " | alt: " + pressingAlt);
 #endif
         }
 
