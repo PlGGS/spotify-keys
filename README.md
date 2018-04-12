@@ -9,9 +9,10 @@ This simple application is made to be placed in one's startup folder, and used f
 Just set the included shortcut location to your Spotify application location and enjoy.
 
 ------------------------
+### Key Commands
 
-Key Commands:
-------------------------
-Control + Space = Next song
-
-Control + Shift + Space = Last song
+| Action | Key command |
+|:---:|:---:|
+| Next Song | `Ctrl + Space` |
+| Last Song | `Ctrl + Shift + Space` |
+| Play/Pause | `Ctrl + Alt + Space` |
