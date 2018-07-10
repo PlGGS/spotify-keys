@@ -243,3 +243,6 @@ ModelManifest.xml
 
 # include everything from latest-build
 !latest-build/*
+latest-build/Spotify.lnk
+
+*.lnk
