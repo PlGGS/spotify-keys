@@ -6,11 +6,20 @@ using Gma.System.MouseKeyHook;
 using System.IO;
 using System.Reflection;
 using System.Threading;
+using System.Data.SqlClient;
+using System.Configuration;
 
 namespace Spotipause
 {
     public partial class frmMain : Form
     {
+        // Sebastian
+        [DllImport("user32.dll")]
+        static extern IntPtr GetForegroundWindow();
+        [DllImport("user32.dll")]
+        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint ProcessId);
+
+        // Blake
         [DllImport("user32.dll")]
         private static extern IntPtr SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
         [DllImport("user32.dll", SetLastError = true)]
@@ -78,6 +87,72 @@ namespace Spotipause
 #if DEBUG
             Console.ForegroundColor = ConsoleColor.Blue;
 #endif
+
+            #region SEBASTIAN
+
+            var blacklisted = false;
+            var activeWindowPath = "";
+
+            IntPtr activeWindow = GetForegroundWindow();
+            uint processId;
+            GetWindowThreadProcessId(activeWindow, out processId);
+            try
+            {
+                var activeProcess = Process.GetProcessById((int)processId);
+#if DEBUG
+                Debug.WriteLine(activeProcess.MainModule.FileName);
+#endif
+                var path = activeProcess.MainModule.FileName;
+                activeWindowPath = path;
+
+                SqlConnection connection = new SqlConnection(Properties.Settings.Default.blacklistConnectionString);
+                SqlCommand command = new SqlCommand("select * from blacklist where path LIKE @path", connection);
+                command.Parameters.Add("@path", System.Data.SqlDbType.NText).Value = path;
+                connection.Open();
+                var isBlocked = command.ExecuteReader().Read();
+                blacklisted = isBlocked;
+            }
+            catch (Exception err)
+            {
+#if DEBUG
+                Debug.WriteLine(err);
+                Debug.WriteLine("couldn't find process");
+#endif
+            }
+
+            var sql = "";
+
+            if(pressingControl && pressingAlt && pressingShift && e.KeyCode == Keys.Insert && !blacklisted)
+            {
+                sql = "INSERT INTO blacklist (path) VALUES (@path);";
+            }
+            if(pressingControl && pressingAlt && pressingShift && e.KeyCode == Keys.Delete)
+            {
+#if DEBUG
+                Debug.WriteLine("delete");
+#endif
+                sql = "DELETE FROM blacklist WHERE path LIKE @path;";
+            }
+
+            if (sql != "" && activeWindowPath != "")
+            {
+                try
+                {
+                    SqlConnection connection = new SqlConnection(Properties.Settings.Default.blacklistConnectionString);
+                    SqlCommand command = new SqlCommand(sql, connection);
+                    command.Parameters.Add("@path", System.Data.SqlDbType.NText).Value = activeWindowPath;
+                    connection.Open();
+                    command.ExecuteNonQuery();
+                } catch(Exception) { }
+            }
+
+            if (blacklisted)
+            {
+                return;
+            }
+
+            #endregion
+
             if (pressingControl)
             {
                 if (pressingAlt)
@@ -225,6 +300,9 @@ namespace Spotipause
 
                 try
                 {
+#if DEBUG
+                    Debug.WriteLine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().GetName().CodeBase).Substring(6) + "\\Spotify.lnk");
+#endif
                     Process.Start(Path.GetDirectoryName(Assembly.GetExecutingAssembly().GetName().CodeBase).Substring(6) + "\\Spotify.lnk");
                     Thread.Sleep(5000);
                     Application.Restart();
