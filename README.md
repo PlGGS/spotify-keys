@@ -16,3 +16,5 @@ Just set the included shortcut location to your Spotify application location and
 | Next Song | `Ctrl + Space` |
 | Last Song | `Ctrl + Shift + Space` |
 | Play/Pause | `Ctrl + Alt + Space` |
+| Add to Blacklist | `Ctrl + Alt + Shift + Insert` |
+| Remove from Blacklist | `Ctrl + Alt + Shift + Delete` |
