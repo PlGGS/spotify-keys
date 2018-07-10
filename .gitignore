@@ -241,4 +241,5 @@ ModelManifest.xml
 # FAKE - F# Make
 .fake/
 
+# include everything from latest-build
 !latest-build/*
