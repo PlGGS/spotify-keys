@@ -206,7 +206,10 @@ namespace Spotipause
             if(pressingControl && pressingAlt && pressingShift && e.KeyCode == Keys.Insert && !blacklisted)
             {
                 sql = "INSERT INTO blacklist (path) VALUES (@path);";
-                this.Notification("s");
+#if DEBUG
+                Debug.WriteLine("add");
+#endif
+                //this.Notification("s");
             }
             if(pressingControl && pressingAlt && pressingShift && e.KeyCode == Keys.Delete)
             {
