@@ -223,12 +223,14 @@ namespace Spotipause
 
                 try
                 {
+                    string workingDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().GetName().CodeBase).Substring(6);
 #if DEBUG
-                    Debug.WriteLine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().GetName().CodeBase).Substring(6) + "\\Spotify.lnk");
+                    Debug.WriteLine(workingDir + "\\Spotify.lnk");
 #endif
-                    Process.Start(Path.GetDirectoryName(Assembly.GetExecutingAssembly().GetName().CodeBase).Substring(6) + "\\Spotify.lnk");
-                    Thread.Sleep(5000);
-                    Application.Restart();
+                    var spotifyShortcuts = Directory.GetFiles(workingDir, "spotify*.lnk", SearchOption.TopDirectoryOnly);
+                    Process.Start(spotifyShortcuts[0]);
+                    Thread.Sleep(3000);
+                    GetSpotifyProcesses();
                 }
                 catch (Exception)
                 {
