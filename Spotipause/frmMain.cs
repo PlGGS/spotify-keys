@@ -35,7 +35,6 @@ namespace Spotipause
         private IKeyboardMouseEvents m_GlobalHook;
         Process[] spotifyProcesses;
         IntPtr[] spotifyHWnds;
-        const int WM_HOTKEY = 0x0312;
         const int WM_APPCOMMAND = 0x319;
         const int MEDIA_PREVIOUS_TRACK = 0xC0000;
         const int MEDIA_NEXT_TRACK = 0xB0000;
@@ -122,19 +121,17 @@ namespace Spotipause
                 }
             }
 
-            if (e.KeyCode == Keys.LControlKey)
+            switch (e.KeyCode)
             {
-                pressingControl = false;
-            }
-
-            if (e.KeyCode == Keys.LShiftKey)
-            {
-                pressingShift = false;
-            }
-
-            if (e.KeyCode == Keys.LMenu)
-            {
-                pressingAlt= false;
+                case Keys.LControlKey:
+                    pressingControl = false;
+                    break;
+                case Keys.LShiftKey:
+                    pressingShift = false;
+                    break;
+                case Keys.LMenu:
+                    pressingAlt = false;
+                    break;
             }
 
 #if DEBUG
@@ -150,19 +147,17 @@ namespace Spotipause
         /// <param name="e"></param>
         private void GlobalHookKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.LControlKey)
+            switch (e.KeyCode)
             {
-                pressingControl = true;
-            }
-
-            if (e.KeyCode == Keys.LShiftKey)
-            {
-                pressingShift = true;
-            }
-
-            if (e.KeyCode == Keys.LMenu)
-            {
-                pressingAlt = true;
+                case Keys.LControlKey:
+                    pressingControl = true;
+                    break;
+                case Keys.LShiftKey:
+                    pressingShift = true;
+                    break;
+                case Keys.LMenu:
+                    pressingAlt = true;
+                    break;
             }
 
 #if DEBUG
@@ -237,7 +232,7 @@ namespace Spotipause
                 }
                 catch (Exception)
                 {
-                    MessageBox.Show("Failed to start the Spotify process. Please either fix the shortcut in your Spotipause directory, or start Spotify manually.", "Spotipause");
+                    MessageBox.Show("Failed to start the Spotify process. Please either place a shortcut to Spotify in your Spotipause directory, or start Spotify manually before running.", "Spotipause");
                     throw;
                 }
             }
