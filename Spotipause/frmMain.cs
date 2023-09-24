@@ -6,24 +6,11 @@ using Gma.System.MouseKeyHook;
 using System.IO;
 using System.Reflection;
 using System.Threading;
-using System.Data.SqlClient;
-using System.Configuration;
-using Windows.UI.Notifications;
-//using Microsoft.Toolkit.Uwp.Notifications; // Notifications library
-using Microsoft.QueryStringDotNET; // QueryString.NET
-using Windows.Data.Xml.Dom;
 
 namespace Spotipause
 {
     public partial class frmMain : Form
     {
-        // Sebastian
-        [DllImport("user32.dll")]
-        static extern IntPtr GetForegroundWindow();
-        [DllImport("user32.dll")]
-        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint ProcessId);
-
-        // Blake
         [DllImport("user32.dll")]
         private static extern IntPtr SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
         [DllImport("user32.dll", SetLastError = true)]
@@ -81,162 +68,16 @@ namespace Spotipause
             m_GlobalHook.KeyUp += GlobalHookKeyUp;
         }
 
-        private void Notification(String text)
-        {
-
-            // In a real app, these would be initialized with actual data
-            string title = "Andrew sent you a picture";
-            string content = "Check this out, Happy Canyon in Utah!";
-            string image = "http://blogs.msdn.com/cfs-filesystemfile.ashx/__key/communityserver-blogs-components-weblogfiles/00-00-01-71-81-permanent/2727.happycanyon1_5B00_1_5D00_.jpg";
-            string logo = "ms-appdata:///local/Andrew.jpg";
-
-            // TODO: all values need to be XML escaped
-
-            // Construct the visuals of the toast
-            string toastVisual =
-            $@"<visual>
-  <binding template='ToastGeneric'>
-    <text>{title}</text>
-    <text>{content}</text>
-    <image src='{image}'/>
-    <image src='{logo}' placement='appLogoOverride' hint-crop='circle'/>
-  </binding>
-</visual>";
-
-            // In a real app, these would be initialized with actual data
-            int conversationId = 384928;
-
-            // Generate the arguments we'll be passing in the toast
-            string argsReply = $"action=reply&conversationId={conversationId}";
-            string argsLike = $"action=like&conversationId={conversationId}";
-            string argsView = $"action=viewImage&imageUrl={Uri.EscapeDataString(image)}";
-
-            // TODO: all args need to be XML escaped
-
-            string toastActions =
-            $@"<actions>
- 
-  <input
-      type='text'
-      id='tbReply'
-      placeHolderContent='Type a response'/>
- 
-  <action
-      content='Reply'
-      arguments='{argsReply}'
-      activationType='background'
-      imageUri='Assets/Reply.png'
-      hint-inputId='tbReply'/>
- 
-  <action
-      content='Like'
-      arguments='{argsLike}'
-      activationType='background'/>
- 
-  <action
-      content='View'
-      arguments='{argsView}'/>
- 
-</actions>";
-
-            // Now we can construct the final toast content
-            string argsLaunch = $"action=viewConversation&conversationId={conversationId}";
-
-            // TODO: all args need to be XML escaped
-
-            string toastXmlString =
-            $@"<toast launch='{argsLaunch}'>
-    {toastVisual}
-    {toastActions}
-</toast>";
-
-            // Parse to XML
-            XmlDocument toastXml = new XmlDocument();
-            toastXml.LoadXml(toastXmlString);
-
-            // Generate toast
-            var toast = new ToastNotification(toastXml);
-        }
-
-            /// <summary>
-            /// Detects KeyUp events while outside of application
-            /// </summary>
-            /// <param name="sender"></param>
-            /// <param name="e"></param>
-            private void GlobalHookKeyUp(object sender, KeyEventArgs e)
+        /// <summary>
+        /// Detects KeyUp events while outside of application
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void GlobalHookKeyUp(object sender, KeyEventArgs e)
         {
 #if DEBUG
             Console.ForegroundColor = ConsoleColor.Blue;
 #endif
-
-            #region SEBASTIAN
-
-            var blacklisted = false;
-            var activeWindowPath = "";
-
-            IntPtr activeWindow = GetForegroundWindow();
-            uint processId;
-            GetWindowThreadProcessId(activeWindow, out processId);
-            try
-            {
-                var activeProcess = Process.GetProcessById((int)processId);
-#if DEBUG
-                Debug.WriteLine(activeProcess.MainModule.FileName);
-#endif
-                var path = activeProcess.MainModule.FileName;
-                activeWindowPath = path;
-
-                SqlConnection connection = new SqlConnection(Properties.Settings.Default.blacklistConnectionString);
-                SqlCommand command = new SqlCommand("select * from blacklist where path LIKE @path", connection);
-                command.Parameters.Add("@path", System.Data.SqlDbType.NText).Value = path;
-                connection.Open();
-                var isBlocked = command.ExecuteReader().Read();
-                blacklisted = isBlocked;
-            }
-            catch (Exception err)
-            {
-#if DEBUG
-                Debug.WriteLine(err);
-                Debug.WriteLine("couldn't find process");
-#endif
-            }
-
-            var sql = "";
-
-            if(pressingControl && pressingAlt && pressingShift && e.KeyCode == Keys.Insert && !blacklisted)
-            {
-                sql = "INSERT INTO blacklist (path) VALUES (@path);";
-#if DEBUG
-                Debug.WriteLine("add");
-#endif
-                //this.Notification("s");
-            }
-            if(pressingControl && pressingAlt && pressingShift && e.KeyCode == Keys.Delete)
-            {
-#if DEBUG
-                Debug.WriteLine("delete");
-#endif
-                sql = "DELETE FROM blacklist WHERE path LIKE @path;";
-            }
-
-            if (sql != "" && activeWindowPath != "")
-            {
-                try
-                {
-                    SqlConnection connection = new SqlConnection(Properties.Settings.Default.blacklistConnectionString);
-                    SqlCommand command = new SqlCommand(sql, connection);
-                    command.Parameters.Add("@path", System.Data.SqlDbType.NText).Value = activeWindowPath;
-                    connection.Open();
-                    command.ExecuteNonQuery();
-                } catch(Exception) { }
-            }
-
-            if (blacklisted)
-            {
-                return;
-            }
-
-            #endregion
 
             if (pressingControl)
             {
@@ -346,7 +187,9 @@ namespace Spotipause
         public frmMain()
         {
             InitializeComponent();
+#if DEBUG
             WriteProcesses("Spotify");
+#endif
             GetSpotifyProcesses();
         }
 
@@ -410,9 +253,7 @@ namespace Spotipause
             {
                 if (proc.ProcessName.Contains(procName))
                 {
-#if DEBUG
                     Console.WriteLine(proc.ProcessName + " | " + proc.Id);
-#endif
                 }
             }
         }
